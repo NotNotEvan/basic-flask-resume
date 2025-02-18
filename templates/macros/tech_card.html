@@ -1,0 +1,12 @@
+{% macro tech_card(name, url, image_path) %}
+<div class="about-content-card">
+  <a href="{{ url }}" target="_blank">
+    <img
+      src="{{ url_for('static', filename=image_path) }}"
+      alt="{{ name }}"
+      class="about-content-card-image"
+    />
+  </a>
+  <p>{{ name }}</p>
+</div>
+{% endmacro %}

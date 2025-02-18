@@ -1,0 +1,204 @@
+/* CSS VARIABLES */
+:root {
+  --background: #e8e7f8;
+  --text: #0c0b19;
+  --primary: #2f27ce;
+  --secondary: #dddbff;
+  --accent: #07dfdf;
+  --text-gradient: linear-gradient(to right, var(--primary), var(--accent));
+  --h1-size: clamp(2.5rem, 5vw, 4.5rem);
+  --h2-size: clamp(2.25rem, 3.75vw, 3.75rem);
+  --h3-size: clamp(2rem, 3vw, 3rem);
+  --h4-size: clamp(1.5rem, 2.25vw, 2.25rem);
+  --h5-size: clamp(1.25rem, 1.875vw, 1.875rem);
+  --h6-size: clamp(1rem, 1.5vw, 1.5rem);
+  --p-size: clamp(1rem, 1.5vw, 1.2rem);
+}
+
+/* GLOBAL CSS RESET */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-family: "Ubuntu", serif;
+  background-color: var(--background);
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+p {
+  text-wrap: pretty;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+#root,
+#__next {
+  isolation: isolate;
+}
+
+/* SCROLLBAR */
+html {
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+  scroll-behavior: smooth;
+  scrollbar-color: var(--primary) var(--background);
+}
+
+/* TYPOGRAPHY */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  color: var(--text);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+}
+
+h1 {
+  font-size: var(--h1-size);
+}
+
+h2 {
+  font-size: var(--h2-size);
+}
+
+h3 {
+  font-size: var(--h3-size);
+}
+
+h4 {
+  font-size: var(--h4-size);
+}
+
+h5 {
+  font-size: var(--h5-size);
+}
+
+h6 {
+  font-size: var(--h6-size);
+}
+
+p {
+  font-size: var(--p-size);
+  font-weight: 400;
+}
+
+/* BACKGROUND CIRCLES */
+.background-circles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  animation: float 20s infinite;
+}
+
+.circle-1 {
+  width: 600px;
+  height: 600px;
+  background-color: var(--primary);
+  top: -100px;
+  right: -100px;
+  animation-delay: -2s;
+}
+
+.circle-2 {
+  width: 500px;
+  height: 500px;
+  background-color: var(--accent);
+  bottom: -100px;
+  left: -100px;
+  animation-delay: -5s;
+}
+
+.circle-3 {
+  width: 400px;
+  height: 400px;
+  background-color: var(--accent);
+  bottom: 20%;
+  right: 20%;
+  animation-delay: -7s;
+}
+
+.circle-4 {
+  width: 300px;
+  height: 300px;
+  background-color: var(--primary);
+  top: 30%;
+  left: 20%;
+  animation-delay: -11s;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(50px, 50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-30px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}

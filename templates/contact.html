@@ -1,0 +1,17 @@
+{% from "macros/contact_form.html" import contact_form %}
+{% extends "base.html" %} {% block title %}Contact{% endblock %} {% block
+content %}
+<div class="contact-container">
+  <!-- TITLE -->
+  <h3 class="title-gradient page-title">Send me a message!</h3>
+
+  <!-- SUBTITLE -->
+  <p class="contact-subtitle">
+    I'm always looking for new opportunities to collaborate and bring my skills
+    to the table. Whether you have a project in mind or just want to say hello,
+    I'm all ears!
+  </p>
+
+  {{ contact_form() }}
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% macro contact_form() %}
+<div class="contact-content">
+  <form class="contact-form" id="contactForm">
+    <input type="text" name="name" placeholder="Name" required />
+    <input type="email" name="email" placeholder="Email" required />
+    <textarea name="message" placeholder="Message" required></textarea>
+    <div class="button-wrapper">
+      <button type="submit" class="base-button cta-button">Send</button>
+    </div>
+  </form>
+</div>
+{% endmacro %}

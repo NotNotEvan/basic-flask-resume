@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#2f27ce" />
+      <stop offset="100%" style="stop-color:#07dfdf" />
+    </linearGradient>
+  </defs>
+  <text 
+    x="50%" 
+    y="50%" 
+    font-family="Ubuntu, sans-serif" 
+    font-size="32" 
+    font-weight="700" 
+    text-anchor="middle" 
+    dominant-baseline="middle" 
+    fill="url(#textGradient)"
+  >
+    EL
+  </text>
+</svg>

@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content
+%}
+<div class="home-container">
+  <!-- Home Title -->
+  <div class="home-title">
+    <p>Hey, my name is</p>
+    <h1 class="title-gradient">Evan Lovett</h1>
+    <h5>
+      I craft unique React experiences, turning complex ideas into elegant,
+      user-friendly interfaces.
+    </h5>
+
+    <!-- CTA Buttons -->
+    <div class="home-title-buttons">
+      <a href="{{ url_for('about') }}" class="base-button cta-button">
+        Learn More
+      </a>
+      <a href="{{ url_for('contact') }}" class="base-button cta-button">
+        Contact Me
+      </a>
+    </div>
+  </div>
+
+  <!-- Profile Image -->
+  <div class="home-image">
+    <img
+      src="{{ url_for('static', filename='images/profile.jpg') }}"
+      alt="Evan's Profile Picture"
+      loading="lazy"
+      rel="noopener noreferrer"
+    />
+  </div>
+</div>
+{% endblock %}

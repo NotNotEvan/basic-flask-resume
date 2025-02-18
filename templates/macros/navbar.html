@@ -1,0 +1,23 @@
+{% macro navbar() %}
+<nav class="nav">
+  <a href="{{ url_for('home') }}" class="nav-logo">
+    <h4 class="title-gradient">EL</h4>
+  </a>
+  <ul class="nav-list">
+    {% for item in [
+      ('home', 'Home'),
+      ('about', 'About'),
+      ('contact', 'Contact')
+    ] %}
+    <li class="nav-item">
+      <a
+        href="{{ url_for(item[0]) }}"
+        class="nav-link {{ 'active' if request.endpoint == item[0] }}"
+      >
+        {{ item[1] }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endmacro %}

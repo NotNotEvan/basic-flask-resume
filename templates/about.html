@@ -1,0 +1,81 @@
+{% extends "base.html" %} {% block title %}About{% endblock %} {% block content
+%}
+{% from "macros/tech_card.html" import tech_card %}
+
+<div class="about-section-container">
+  <!-- Timeline -->
+  <h3 class="title-gradient page-title">My Journey</h3>
+
+  <div class="timeline-container">
+    <ol class="timeline-list">
+      <li class="timeline-item">
+        <span class="timeline-year">2015</span>
+        <div class="timeline-content">
+          <h4>Early Years</h4>
+          <p>
+            Grew up in the suburbs of Kansas City, MO. After graduating high
+            school, I moved to Nashville, TN to pursue music as a freelance
+            drummer while attending Belmont University for a short time.
+          </p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-year">2016</span>
+        <div class="timeline-content">
+          <h4>Sales & Marketing</h4>
+          <p>
+            Spent 4 years in sales and marketing while continuing to play drums
+            for artists around the United States.
+          </p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-year">2020</span>
+        <div class="timeline-content">
+          <h4>U.S. Navy</h4>
+          <p>
+            Served 4 years as an Intelligence Analyst, where I learned a little
+            bit of Python and data analysis using libraries like pandas, numpy,
+            and beautifulsoup. This was my first exposure to programming and
+            sparked my interest in software engineering.
+          </p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-year">2023</span>
+        <div class="timeline-content">
+          <h4>Software Engineering</h4>
+          <p>
+            Nearing my Navy separation, I strived to transition to a
+            software engineering role and landed a SkillBridge internship at
+            <a href="https://blackcape.io" target="_blank" class="link"
+              >Black Cape</a
+            >
+            to round out my last four months of active duty service. I am
+            currently working as a full-time front-end software engineer on
+            government projects. As of
+            <span class="current-time">{{ current_time }}</span>, I am working
+            on an Applicant Tracking System (ATS) for the U.S. Army.
+          </p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+<div class="about-section-container">
+  <!-- Technologies -->
+  <div class="title-gradient page-title">
+    <h3>My Favorite Technologies</h3>
+  </div>
+
+  <div class="about-content-container">
+    {{ tech_card("React", "https://react.dev", "images/react.png") }}
+    {{ tech_card("TypeScript", "https://www.typescriptlang.org", "images/typescript.png") }}
+    {{ tech_card("Tailwind", "https://tailwindcss.com", "images/tailwind.png") }}
+    {{ tech_card("Tanstack", "https://tanstack.com/query", "images/tanstack.png") }}
+    {{ tech_card("Shadcn", "https://ui.shadcn.com", "images/shadcn.png") }}
+    {{ tech_card("Docker", "https://www.docker.com", "images/docker.png") }}
+    {{ tech_card("Figma", "https://www.figma.com", "images/figma.png") }}
+  </div>
+</div>
+{% endblock %}
