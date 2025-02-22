@@ -62,15 +62,13 @@
   <body>
     {{ background_circles() }}
     <div class="container">
-      {% if session.get('authenticated') %}
-      <header class="header">{{ navbar() }}</header>
+      {% if session['authenticated'] %}
+        <header class="header">{{ navbar() }}</header>
       {% endif %}
 
       <!-- Main Content -->
       <main class="main">
-        <div
-          class="content-container {% if not session.get('user_id') %}no-nav{% endif %}"
-        >
+        <div class="content-container {% if not session['authenticated'] %}no-nav{% endif %}">
           {% block content %}{% endblock %}
         </div>
       </main>
