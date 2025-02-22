@@ -8,6 +8,8 @@ providing basic routing and form handling functionality.
 from datetime import datetime
 from http import HTTPStatus
 from werkzeug.exceptions import BadRequest
+
+from passlib.hash import sha256_crypt
 from flask import (
     Flask,
     redirect,
@@ -16,10 +18,12 @@ from flask import (
     jsonify,
     flash,
     url_for,
+    session,
 )
 
 # Initialize Flask app
 app = Flask(__name__)
+app.secret_key = "super_secret_key"
 
 # Route constants
 URL_ROUTES = {
@@ -29,6 +33,64 @@ URL_ROUTES = {
     "ABOUT": "/about",
     "CONTACT": "/contact",
 }
+
+# Initialize the database in the form of a text file
+DATABASE = "database.txt"
+db = {}
+
+
+# Hash password
+def hash_password(password):
+    """
+    Hashes a password using the sha256_crypt algorithm.
+    """
+    return sha256_crypt.hash(password)
+
+
+# Verify password
+def verify_password(password, hashed_password):
+    """
+    Verifies a password against a hashed password using the sha256_crypt algorithm.
+    """
+    return sha256_crypt.verify(password, hashed_password)
+
+
+# Load database
+def load_database():
+    """
+    Loads the database from a text file. Creates file if it doesn't exist.
+    """
+    try:
+        with open(DATABASE, "a+"):  # Create file if it doesn't exist
+            pass
+
+        with open(DATABASE, "r") as file:
+            for line in file:
+                if line.strip():  # Skip empty lines
+                    username, hashed_password = line.strip().split(":")
+                    db[username] = hashed_password
+    except Exception as e:
+        print(f"Error loading database: {e}")
+    return db
+
+
+# Save database
+def save_database():
+    """
+    Saves the database to a text file.
+    """
+    try:
+        with open(DATABASE, "w") as file:
+            for username, hashed_password in db.items():
+                file.write(f"{username}:{hashed_password}\n")
+        return True
+    except Exception as e:
+        print(f"Error saving database: {e}")
+        return False
+
+
+# Initialize database
+load_database()
 
 
 # HANDLERS
@@ -62,21 +124,71 @@ def handle_register():
     """
     Handles the register route's form submission.
     """
-    username = request.form["username"]
-    password = request.form["password"]
-    error = None
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
+    # # Validate form data
+    # if not username or not password:
+    #     flash("Username and password are required")
+    #     return redirect(url_for("register"))
+
+    # if password != confirm_password:
+    #     flash("Passwords do not match")
+    #     return redirect(url_for("register"))
+
+    # if len(password) < 8:
+    #     flash("Password must be at least 8 characters long")
+    #     return redirect(url_for("register"))
+
+    # # Check if username already exists
+    # if username in db:
+    #     flash("Username already exists")
+    #     return redirect(url_for("register"))
+
+    # Hash password and save to database
+    try:
+        hashed_password = hash_password(password)
+        db[username] = hashed_password
+        if save_database():
+            flash("Registration successful! Please login.")
+            return redirect(url_for("login"))
+        else:
+            flash("Error saving registration. Please try again.")
+    except Exception as e:
+        flash(f"Registration error: {str(e)}")
+
+    return redirect(url_for("register"))
+
+
+@app.route(URL_ROUTES["LOGIN"], methods=["POST"])
+def handle_login():
+    """
+    Handles the login route's form submission.
+    """
+    username = request.form.get("username", "").strip()
+    password = request.form.get("password", "").strip()
 
     # Validate form data
-    if not username:
-        error = "Username is required"
-    elif not password:
-        error = "Password is required"
-    flash(error)
-
-    # TODO: Encrypt and store credentials
-
-    if not error:
+    if not username or not password:
+        flash("Username and password are required")
         return redirect(url_for("login"))
+
+    try:
+        # Check credentials
+        if username in db and verify_password(password, db[username]):
+            # Set session data
+            session["username"] = username
+            session["authenticated"] = True
+            session.permanent = True  # Make session persistent
+            flash("Login successful!")
+            return redirect(url_for("home"))
+        else:
+            flash("Invalid username or password")
+    except Exception as e:
+        flash(f"Login error: {str(e)}")
+
+    return redirect(url_for("login"))
 
 
 # ROUTES
@@ -85,6 +197,10 @@ def login():
     """
     Renders the login page template.
     """
+    if session.get("authenticated"):
+        return redirect(url_for("home"))
+    if request.method == "POST":
+        return handle_login()
     return render_template("login.html")
 
 
@@ -103,6 +219,8 @@ def home():
     """
     Renders the home page template.
     """
+    if not session.get("authenticated"):
+        return redirect(url_for("login"))
     return render_template("home.html")
 
 
@@ -111,7 +229,8 @@ def about():
     """
     Renders the about page template.
     """
-    # Get current time
+    if not session.get("authenticated"):
+        return redirect(url_for("login"))
     current_time = datetime.now().strftime("%B %d, %Y %I:%M %p")
     return render_template("about.html", current_time=current_time)
 
@@ -121,10 +240,20 @@ def contact():
     """
     Renders the contact page template.
     """
-    # Handle form submission
+    if not session.get("authenticated"):
+        return redirect(url_for("login"))
     if request.method == "POST":
         return handle_contact()
     return render_template("contact.html")
+
+
+@app.route("/logout")
+def logout():
+    """
+    Handles user logout by clearing the session.
+    """
+    session.clear()
+    return redirect(url_for("login"))
 
 
 # RUN APP

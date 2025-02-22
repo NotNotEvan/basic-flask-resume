@@ -62,7 +62,7 @@
   <body>
     {{ background_circles() }}
     <div class="container">
-      {% if session.get('user_id') %}
+      {% if session.get('authenticated') %}
       <header class="header">{{ navbar() }}</header>
       {% endif %}
 
