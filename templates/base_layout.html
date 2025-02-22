@@ -57,15 +57,22 @@
         }
       });
     </script>
+    {% block scripts %}{% endblock %}
   </head>
   <body>
     {{ background_circles() }}
     <div class="container">
+      {% if session.get('user_id') %}
       <header class="header">{{ navbar() }}</header>
+      {% endif %}
 
       <!-- Main Content -->
       <main class="main">
-        <div class="content-container">{% block content %}{% endblock %}</div>
+        <div
+          class="content-container {% if not session.get('user_id') %}no-nav{% endif %}"
+        >
+          {% block content %}{% endblock %}
+        </div>
       </main>
     </div>
   </body>

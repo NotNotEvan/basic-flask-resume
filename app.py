@@ -8,16 +8,30 @@ providing basic routing and form handling functionality.
 from datetime import datetime
 from http import HTTPStatus
 from werkzeug.exceptions import BadRequest
-
-from flask import Flask, render_template, request, jsonify
+from flask import (
+    Flask,
+    redirect,
+    render_template,
+    request,
+    jsonify,
+    flash,
+    url_for,
+)
 
 # Initialize Flask app
 app = Flask(__name__)
 
 # Route constants
-URL_ROUTES = {"HOME": "/", "ABOUT": "/about", "CONTACT": "/contact"}
+URL_ROUTES = {
+    "LOGIN": "/",
+    "REGISTER": "/register",
+    "HOME": "/home",
+    "ABOUT": "/about",
+    "CONTACT": "/contact",
+}
 
 
+# HANDLERS
 @app.route(URL_ROUTES["CONTACT"], methods=["POST"])
 def handle_contact():
     """
@@ -43,7 +57,48 @@ def handle_contact():
         return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
 
 
-@app.route(URL_ROUTES["HOME"])
+@app.route(URL_ROUTES["REGISTER"], methods=["POST"])
+def handle_register():
+    """
+    Handles the register route's form submission.
+    """
+    username = request.form["username"]
+    password = request.form["password"]
+    error = None
+
+    # Validate form data
+    if not username:
+        error = "Username is required"
+    elif not password:
+        error = "Password is required"
+    flash(error)
+
+    # TODO: Encrypt and store credentials
+
+    if not error:
+        return redirect(url_for("login"))
+
+
+# ROUTES
+@app.route(URL_ROUTES["LOGIN"], methods=["GET", "POST"])
+def login():
+    """
+    Renders the login page template.
+    """
+    return render_template("login.html")
+
+
+@app.route(URL_ROUTES["REGISTER"], methods=["GET", "POST"])
+def register():
+    """
+    Renders the register page template.
+    """
+    if request.method == "POST":
+        return handle_register()
+    return render_template("register.html")
+
+
+@app.route("/home")
 def home():
     """
     Renders the home page template.
