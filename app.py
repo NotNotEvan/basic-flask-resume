@@ -5,11 +5,13 @@ This module implements a simple resume website with home, about, and contact pag
 providing basic routing and form handling functionality.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from http import HTTPStatus
 from werkzeug.exceptions import BadRequest
+import tempfile
 
 from passlib.hash import sha256_crypt
+from flask_session import Session
 from flask import (
     Flask,
     redirect,
@@ -24,6 +26,22 @@ from flask import (
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = "super_secret_key"
+
+# Create a temporary directory for sessions
+temp_session_dir = tempfile.mkdtemp()
+
+# Session configuration
+app.config.update(
+    SESSION_TYPE="filesystem",
+    SESSION_FILE_DIR=temp_session_dir,
+    SESSION_FILE_THRESHOLD=500,
+    PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+)
+
+# Initialize the Session extension
+Session(app)
 
 # Route constants
 URL_ROUTES = {
@@ -180,7 +198,6 @@ def handle_login():
             # Set session data
             session["username"] = username
             session["authenticated"] = True
-            session.permanent = True  # Make session persistent
             flash("Login successful!")
             return redirect(url_for("home"))
         else:
