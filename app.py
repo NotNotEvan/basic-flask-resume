@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 from werkzeug.exceptions import BadRequest
 import tempfile
+from string import digits, ascii_uppercase, ascii_lowercase, punctuation
 
 from passlib.hash import sha256_crypt
 from flask_session import Session
@@ -55,22 +56,6 @@ URL_ROUTES = {
 # Initialize the database in the form of a text file
 DATABASE = "database.txt"
 db = {}
-
-
-# Hash password
-def hash_password(password):
-    """
-    Hashes a password using the sha256_crypt algorithm.
-    """
-    return sha256_crypt.hash(password)
-
-
-# Verify password
-def verify_password(password, hashed_password):
-    """
-    Verifies a password against a hashed password using the sha256_crypt algorithm.
-    """
-    return sha256_crypt.verify(password, hashed_password)
 
 
 # Load database
@@ -130,10 +115,12 @@ def handle_contact():
             raise BadRequest("All fields are required")
 
         # Process form data
+        flash("Message sent successfully!", "success")
         return jsonify(form_data), HTTPStatus.OK
 
     except BadRequest as e:
         # Log BadRequest error
+        flash(f"Error sending message. Please try again.", "error")
         return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
 
 
@@ -146,35 +133,47 @@ def handle_register():
     password = request.form.get("password", "").strip()
     confirm_password = request.form.get("confirm_password", "").strip()
 
-    # # Validate form data
-    # if not username or not password:
-    #     flash("Username and password are required")
-    #     return redirect(url_for("register"))
+    # Validate form data
+    if password != confirm_password:
+        flash("Passwords do not match", "error")
+        return redirect(url_for("register"))
 
-    # if password != confirm_password:
-    #     flash("Passwords do not match")
-    #     return redirect(url_for("register"))
+    if len(password) < 12:
+        flash("Password must be at least 12 characters long", "error")
+        return redirect(url_for("register"))
 
-    # if len(password) < 8:
-    #     flash("Password must be at least 8 characters long")
-    #     return redirect(url_for("register"))
+    if not any(char in ascii_uppercase for char in password):
+        flash("Password must contain at least one uppercase letter", "error")
+        return redirect(url_for("register"))
 
-    # # Check if username already exists
-    # if username in db:
-    #     flash("Username already exists")
-    #     return redirect(url_for("register"))
+    if not any(char in ascii_lowercase for char in password):
+        flash("Password must contain at least one lowercase letter", "error")
+        return redirect(url_for("register"))
+
+    if not any(char in digits for char in password):
+        flash("Password must contain at least one number", "error")
+        return redirect(url_for("register"))
+
+    if not any(char in punctuation for char in password):
+        flash("Password must contain at least one special character", "error")
+        return redirect(url_for("register"))
+
+    # Check if username already exists
+    if username in db:
+        flash("Username already exists", "error")
+        return redirect(url_for("register"))
 
     # Hash password and save to database
     try:
-        hashed_password = hash_password(password)
+        hashed_password = sha256_crypt.hash(password)
         db[username] = hashed_password
         if save_database():
-            flash("Registration successful! Please login.")
+            flash("Registration successful! Please login.", "success")
             return redirect(url_for("login"))
         else:
-            flash("Error saving registration. Please try again.")
+            flash("Error saving registration. Please try again.", "error")
     except Exception as e:
-        flash(f"Registration error: {str(e)}")
+        flash(f"Registration error: {str(e)}", "error")
 
     return redirect(url_for("register"))
 
@@ -187,23 +186,18 @@ def handle_login():
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "").strip()
 
-    # Validate form data
-    if not username or not password:
-        flash("Username and password are required")
-        return redirect(url_for("login"))
-
     try:
         # Check credentials
-        if username in db and verify_password(password, db[username]):
+        if username in db and sha256_crypt.verify(password, db[username]):
             # Set session data
             session["username"] = username
             session["authenticated"] = True
-            flash("Login successful!")
+            flash("Login successful!", "success")
             return redirect(url_for("home"))
         else:
-            flash("Invalid username or password")
+            flash("Invalid username or password", "error")
     except Exception as e:
-        flash(f"Login error: {str(e)}")
+        flash(f"Login error: {str(e)}", "error")
 
     return redirect(url_for("login"))
 

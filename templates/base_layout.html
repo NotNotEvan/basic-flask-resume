@@ -1,5 +1,6 @@
 {% from "macros/navbar.html" import navbar %} {% from
-"macros/background_circles.html" import background_circles %}
+"macros/background_circles.html" import background_circles %} {% from
+"macros/flash_messages.html" import flash_messages %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -26,49 +27,24 @@
       rel="stylesheet"
     />
 
-    <!-- Mock request for contact form -->
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const contactForm = document.getElementById("contactForm");
-        if (contactForm) {
-          contactForm.addEventListener("submit", async function (e) {
-            e.preventDefault();
-
-            const formData = new FormData(contactForm);
-            const formDataObject = {
-              name: formData.get("name"),
-              email: formData.get("email"),
-              message: formData.get("message")
-            };
-
-            try {
-              const response = await fetch("/contact", {
-                method: "POST",
-                body: formData
-              });
-
-              const data = await response.json();
-              alert(JSON.stringify(formDataObject, null, 2));
-              contactForm.reset();
-            } catch (error) {
-              alert("An error occurred while sending the message.");
-            }
-          });
-        }
-      });
-    </script>
     {% block scripts %}{% endblock %}
   </head>
   <body>
     {{ background_circles() }}
     <div class="container">
       {% if session['authenticated'] %}
-        <header class="header">{{ navbar() }}</header>
+      <header class="header">{{ navbar() }}</header>
       {% endif %}
 
       <!-- Main Content -->
       <main class="main">
-        <div class="content-container {% if not session['authenticated'] %}no-nav{% endif %}">
+        <!-- Flash Messages -->
+        {{ flash_messages() }}
+
+        <!-- Content Container -->
+        <div
+          class="content-container {% if not session['authenticated'] %}no-nav{% endif %}"
+        >
           {% block content %}{% endblock %}
         </div>
       </main>
