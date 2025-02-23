@@ -1,6 +1,38 @@
-{% from "macros/contact_form.html" import contact_form %}
-{% extends "base_layout.html" %} {% block title %}Contact{% endblock %} {% block
-content %}
+{% from "macros/contact_form.html" import contact_form %} {% extends
+"base_layout.html" %} {% block title %}Contact{% endblock %} {% block content %}
+
+<!-- Mock request for contact form -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const contactForm = document.getElementById("contactForm");
+    if (contactForm) {
+      contactForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(contactForm);
+        const formDataObject = {
+          name: formData.get("name"),
+          email: formData.get("email"),
+          message: formData.get("message")
+        };
+
+        try {
+          const response = await fetch("/contact", {
+            method: "POST",
+            body: formData
+          });
+
+          const data = await response.json();
+          alert(JSON.stringify(formDataObject, null, 2));
+          contactForm.reset();
+        } catch (error) {
+          alert("An error occurred while sending the message.");
+        }
+      });
+    }
+  });
+</script>
+
 <div class="contact-container">
   <!-- TITLE -->
   <h3 class="title-gradient page-title">Send me a message!</h3>
