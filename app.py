@@ -6,7 +6,6 @@ providing basic routing and form handling functionality.
 """
 
 from datetime import datetime, timedelta
-from http import HTTPStatus
 from werkzeug.exceptions import BadRequest
 import tempfile
 from string import digits, ascii_uppercase, ascii_lowercase, punctuation
@@ -18,7 +17,6 @@ from flask import (
     redirect,
     render_template,
     request,
-    jsonify,
     flash,
     url_for,
     session,
