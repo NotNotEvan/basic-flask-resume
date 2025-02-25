@@ -29,7 +29,6 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = environ.get("SECRET_KEY", "fallback_secret_key")
 DATABASE = environ.get("DATABASE_FILE", "database.txt")
-db = {}
 
 # Create a temporary directory for sessions
 temp_session_dir = tempfile.mkdtemp()
@@ -56,45 +55,48 @@ URL_ROUTES = {
     "CONTACT": "/contact",
 }
 
-# Initialize the database in the form of a text file
 
+class UserDatabase:
+    def __init__(self, filename):
+        """
+        Initializes the UserDatabase object.
+        """
+        self.filename = filename
+        self.users = {}
+        self.load_database()
 
-# Load database
-def load_database():
-    """
-    Loads the database from a text file. Creates file if it doesn't exist.
-    """
-    try:
-        with open(DATABASE, "a+"):  # Create file if it doesn't exist
-            pass
+    def load_database(self):
+        """
+        Loads the database from a text file. Creates file if it doesn't exist.
+        """
+        try:
+            with open(self.filename, "a+"):  # Create file if it doesn't exist
+                pass
 
-        with open(DATABASE, "r") as file:
-            for line in file:
-                if line.strip():  # Skip empty lines
-                    username, hashed_password = line.strip().split(":")
-                    db[username.strip().lower()] = hashed_password
-    except Exception as e:
-        print(f"Error loading database: {e}")
-    return db
+            with open(self.filename, "r") as file:
+                for line in file:
+                    if line.strip():  # Skip empty lines
+                        username, hashed_password = line.strip().split(":")
+                        self.users[username.strip().lower()] = hashed_password
+        except (IOError, OSError) as e:
+            print(f"File system error loading database: {e}")
 
-
-# Save database
-def save_database():
-    """
-    Saves the database to a text file.
-    """
-    try:
-        with open(DATABASE, "w") as file:
-            for username, hashed_password in db.items():
-                file.write(f"{username.strip().lower()}:{hashed_password}\n")
-        return True
-    except Exception as e:
-        print(f"Error saving database: {e}")
-        return False
+    def save_database(self):
+        """
+        Saves the database to a text file.
+        """
+        try:
+            with open(self.filename, "w") as file:
+                for username, hashed_password in self.users.items():
+                    file.write(f"{username.strip().lower()}:{hashed_password}\n")
+            return True
+        except (IOError, OSError) as e:
+            print(f"Error saving database: {e}")
+            return False
 
 
 # Initialize database
-load_database()
+db = UserDatabase(DATABASE)
 
 
 # HANDLERS
@@ -177,7 +179,7 @@ def handle_register():
         )
 
     # Check if username already exists
-    if username in db:
+    if username in db.users:
         flash("Username already exists", "error")
         return render_template(
             "register.html",
@@ -189,8 +191,8 @@ def handle_register():
     # Hash password and save to database
     try:
         hashed_password = sha256_crypt.hash(password)
-        db[username] = hashed_password
-        if save_database():
+        db.users[username] = hashed_password
+        if db.save_database():
             flash("Registration successful! Please login.", "success")
             return redirect(url_for("login"))
         else:
@@ -221,7 +223,7 @@ def handle_login():
 
     try:
         # Check credentials
-        if username in db and sha256_crypt.verify(password, db[username]):
+        if username in db.users and sha256_crypt.verify(password, db.users[username]):
             # Set session data
             session["username"] = username
             session["authenticated"] = True
