@@ -109,73 +109,64 @@ def handle_contact():
     """
     Handles the contact route's form submission.
     """
-    try:
-        # Get form data
-        form_data = {
-            "name": request.form.get("name"),
-            "email": request.form.get("email"),
-            "message": request.form.get("message"),
-        }
 
-        # Check if user is authenticated
-        if not session.get("authenticated"):
-            flash("Please login to send a message", "error")
-            return redirect(url_for("login"))
+    # Get form data
+    form_data = {
+        "name": request.form.get("name"),
+        "email": request.form.get("email"),
+        "message": request.form.get("message"),
+    }
 
-        # Validate form data
-        if not all(form_data.values()):
-            flash("All fields are required", "error")
-            return render_template("contact.html", form_data=form_data)
+    # Check if user is authenticated
+    if not session.get("authenticated"):
+        flash("Please login to send a message", "error")
+        return redirect(url_for("login"))
 
-        # Process form data
-        flash("Message sent successfully!", "success")
-        return render_template("contact.html")
+    # Validate form data
+    if not all(form_data.values()):
+        flash("All fields are required", "error")
+        return render_template("contact.html", form_data=form_data)
 
-    except (ValueError, TypeError):
-        # Log ValueError or TypeError
-        flash("Error sending message. Please try again.", "error")
-        return render_template("contact.html")
+    # Process form data
+    flash("Message sent successfully!", "success")
+    return render_template("contact.html")
 
 
 def validate_password(password: str, confirm_password: str) -> tuple[bool, str]:
     """
     Validates password against security requirements.
     """
-    if password != confirm_password:
-        return (
-            False,
-            "Passwords do not match",
-        )
-
-    if not any(char in ascii_uppercase for char in password):
-        return (
-            False,
+    validations = [
+        # Check if passwords match
+        (password == confirm_password, "Passwords do not match"),
+        # Check if password contains uppercase letter
+        (
+            any(char in ascii_uppercase for char in password),
             "Password must contain at least one uppercase letter",
-        )
-
-    if not any(char in ascii_lowercase for char in password):
-        return (
-            False,
+        ),
+        # Check if password contains lowercase letter
+        (
+            any(char in ascii_lowercase for char in password),
             "Password must contain at least one lowercase letter",
-        )
-
-    if not any(char in digits for char in password):
-        return (
-            False,
+        ),
+        # Check if password contains number
+        (
+            any(char in digits for char in password),
             "Password must contain at least one number",
-        )
-
-    if not any(char in punctuation for char in password):
-        return (
-            False,
+        ),
+        # Check if password contains special character
+        (
+            any(char in punctuation for char in password),
             "Password must contain at least one special character",
-        )
+        ),
+        # Check if password is at least 12 characters long
+        (len(password) >= 12, "Password must be at least 12 characters long"),
+    ]
 
-    if len(password) < 12:
-        return (
-            False,
-            "Password must be at least 12 characters long",
-        )
+    # Validate password
+    for is_valid, error_message in validations:
+        if not is_valid:
+            return False, error_message
 
     return True, ""
 
@@ -189,6 +180,7 @@ def handle_register():
     password = request.form.get("password", "").strip()
     confirm_password = request.form.get("confirm_password", "").strip()
 
+    # Get form data
     form_data = {
         "username": username,
         "password": password,
@@ -230,6 +222,7 @@ def handle_login():
     password = request.form.get("password", "").strip()
 
     try:
+        # Check if database is loaded
         if not db.load_database():
             raise IOError("Failed to load database")
 
