@@ -6,23 +6,22 @@ providing basic routing and form handling functionality.
 """
 
 from datetime import datetime, timedelta
-from werkzeug.exceptions import BadRequest
+from os import environ
+from string import ascii_lowercase, ascii_uppercase, digits, punctuation
 import tempfile
 
-from string import digits, ascii_uppercase, ascii_lowercase, punctuation
-from os import environ
 from dotenv import load_dotenv
-from passlib.hash import sha256_crypt
-from flask_session import Session
 from flask import (
     Flask,
+    flash,
     redirect,
     render_template,
     request,
-    flash,
-    url_for,
     session,
+    url_for,
 )
+from flask_session import Session
+from passlib.hash import sha256_crypt
 
 # Initialize Flask app
 load_dotenv()
@@ -56,6 +55,10 @@ URL_ROUTES = {
 
 
 class UserDatabase:
+    """
+    A class for managing user authentication data in a text file.
+    """
+
     def __init__(self, filename):
         """
         Initializes the UserDatabase object.
@@ -69,10 +72,12 @@ class UserDatabase:
         Loads the database from a text file. Creates file if it doesn't exist.
         """
         try:
-            with open(self.filename, "a+"):  # Create file if it doesn't exist
+            with open(
+                self.filename, "a+", encoding="utf-8"
+            ):  # Create file if it doesn't exist
                 pass
 
-            with open(self.filename, "r") as file:
+            with open(self.filename, "r", encoding="utf-8") as file:
                 for line in file:
                     if line.strip():  # Skip empty lines
                         username, hashed_password = line.strip().split(":")
@@ -85,7 +90,7 @@ class UserDatabase:
         Saves the database to a text file.
         """
         try:
-            with open(self.filename, "w") as file:
+            with open(self.filename, "w", encoding="utf-8") as file:
                 for username, hashed_password in self.users.items():
                     file.write(f"{username.strip().lower()}:{hashed_password}\n")
             return True
@@ -126,9 +131,9 @@ def handle_contact():
         flash("Message sent successfully!", "success")
         return render_template("contact.html")
 
-    except BadRequest:
-        # Log BadRequest error
-        flash(f"Error sending message. Please try again.", "error")
+    except (ValueError, TypeError):
+        # Log ValueError or TypeError
+        flash("Error sending message. Please try again.", "error")
         return render_template("contact.html")
 
 
@@ -184,50 +189,36 @@ def handle_register():
     password = request.form.get("password", "").strip()
     confirm_password = request.form.get("confirm_password", "").strip()
 
+    form_data = {
+        "username": username,
+        "password": password,
+        "confirm_password": confirm_password,
+    }
+
     # Validate password
     is_valid, error_message = validate_password(password, confirm_password)
     if not is_valid:
         flash(error_message, "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
+        return render_template("register.html", **form_data)
 
     # Check if username already exists
     if username in db.users:
         flash("Username already exists", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
+        return render_template("register.html", **form_data)
 
     # Hash password and save to database
     try:
         hashed_password = sha256_crypt.hash(password)
         db.users[username] = hashed_password
-        if db.save_database():
-            flash("Registration successful! Please login.", "success")
-            return redirect(url_for("login"))
-        else:
-            flash("Error saving registration. Please try again.", "error")
-            return render_template(
-                "register.html",
-                username=username,
-                password=password,
-                confirm_password=confirm_password,
-            )
-    except (ValueError, TypeError) as e:
+        if not db.save_database():
+            raise IOError("Failed to save to database")
+
+        flash("Registration successful! Please login.", "success")
+        return redirect(url_for("login"))
+
+    except IOError as e:
         flash(f"Registration error: {str(e)}", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
+        return render_template("register.html", **form_data)
 
 
 @app.route(URL_ROUTES["LOGIN"], methods=["POST"])
@@ -239,17 +230,22 @@ def handle_login():
     password = request.form.get("password", "").strip()
 
     try:
+        if not db.load_database():
+            raise IOError("Failed to load database")
+
         # Check credentials
-        if username in db.users and sha256_crypt.verify(password, db.users[username]):
-            # Set session data
-            session["username"] = username
-            session["authenticated"] = True
-            flash("Login successful!", "success")
-            return redirect(url_for("home"))
-        else:
+        if not username in db.users or not sha256_crypt.verify(
+            password, db.users[username]
+        ):
             flash("Invalid username or password", "error")
             return render_template("login.html", username=username, password=password)
-    except (ValueError, TypeError) as e:
+
+        # Set session data
+        session["username"] = username
+        session["authenticated"] = True
+        flash("Login successful!", "success")
+        return redirect(url_for("home"))
+    except IOError as e:
         flash(f"Login error: {str(e)}", "error")
         return render_template("login.html", username=username, password=password)
 
