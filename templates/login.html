@@ -6,11 +6,18 @@ content %}
     <form class="login-form" method="POST">
       <input
         type="text"
+        value="{{ username }}"
         name="username"
         placeholder="Username or Email"
         required
       />
-      <input type="password" name="password" placeholder="Password" required />
+      <input
+        type="password"
+        value="{{ password }}"
+        name="password"
+        placeholder="Password"
+        required
+      />
       <button type="submit" class="base-button cta-button">Login</button>
     </form>
     <p class="register-text">

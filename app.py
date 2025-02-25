@@ -136,32 +136,67 @@ def handle_register():
     # Validate form data
     if password != confirm_password:
         flash("Passwords do not match", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     if len(password) < 12:
         flash("Password must be at least 12 characters long", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     if not any(char in ascii_uppercase for char in password):
         flash("Password must contain at least one uppercase letter", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     if not any(char in ascii_lowercase for char in password):
         flash("Password must contain at least one lowercase letter", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     if not any(char in digits for char in password):
         flash("Password must contain at least one number", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     if not any(char in punctuation for char in password):
         flash("Password must contain at least one special character", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     # Check if username already exists
     if username in db:
         flash("Username already exists", "error")
-        return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
     # Hash password and save to database
     try:
@@ -172,10 +207,20 @@ def handle_register():
             return redirect(url_for("login"))
         else:
             flash("Error saving registration. Please try again.", "error")
+            return render_template(
+                "register.html",
+                username=username,
+                password=password,
+                confirm_password=confirm_password,
+            )
     except Exception as e:
         flash(f"Registration error: {str(e)}", "error")
-
-    return redirect(url_for("register"))
+        return render_template(
+            "register.html",
+            username=username,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
 
 @app.route(URL_ROUTES["LOGIN"], methods=["POST"])
@@ -196,10 +241,10 @@ def handle_login():
             return redirect(url_for("home"))
         else:
             flash("Invalid username or password", "error")
+            return render_template("login.html", username=username, password=password)
     except Exception as e:
         flash(f"Login error: {str(e)}", "error")
-
-    return redirect(url_for("login"))
+        return render_template("login.html", username=username, password=password)
 
 
 # ROUTES
@@ -212,7 +257,7 @@ def login():
         return redirect(url_for("home"))
     if request.method == "POST":
         return handle_login()
-    return render_template("login.html")
+    return render_template("login.html", username="", password="")
 
 
 @app.route(URL_ROUTES["REGISTER"], methods=["GET", "POST"])
@@ -222,7 +267,9 @@ def register():
     """
     if request.method == "POST":
         return handle_register()
-    return render_template("register.html")
+    return render_template(
+        "register.html", username="", password="", confirm_password=""
+    )
 
 
 @app.route("/home")

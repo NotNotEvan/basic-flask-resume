@@ -6,13 +6,21 @@ block content %}
     <form class="login-form" method="POST">
       <input
         type="text"
+        value="{{ username }}"
         name="username"
         placeholder="Username/Email"
         required
       />
-      <input type="password" name="password" placeholder="Password" required />
       <input
         type="password"
+        value="{{ password }}"
+        name="password"
+        placeholder="Password"
+        required
+      />
+      <input
+        type="password"
+        value="{{ confirm_password }}"
         name="confirm_password"
         placeholder="Confirm Password"
         required
