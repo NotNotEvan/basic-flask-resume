@@ -110,18 +110,25 @@ def handle_contact():
             "message": request.form.get("message"),
         }
 
+        # Check if user is authenticated
+        if not session.get("authenticated"):
+            flash("Please login to send a message", "error")
+            return redirect(url_for("login"))
+
         # Validate form data
         if not all(form_data.values()):
-            raise BadRequest("All fields are required")
+            flash("All fields are required", "error")
+            return render_template("contact.html", form_data=form_data)
 
         # Process form data
+        print(form_data)
         flash("Message sent successfully!", "success")
-        return jsonify(form_data), HTTPStatus.OK
+        return render_template("contact.html")
 
-    except BadRequest as e:
+    except BadRequest:
         # Log BadRequest error
         flash(f"Error sending message. Please try again.", "error")
-        return jsonify({"error": str(e)}), HTTPStatus.BAD_REQUEST
+        return render_template("contact.html")
 
 
 @app.route(URL_ROUTES["REGISTER"], methods=["POST"])
