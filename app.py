@@ -131,6 +131,31 @@ def handle_contact():
         return render_template("contact.html")
 
 
+def validate_password(password: str, confirm_password: str) -> tuple[bool, str]:
+    """
+    Validates password against security requirements.
+    """
+    if password != confirm_password:
+        return False, "Passwords do not match"
+
+    if not any(char in ascii_uppercase for char in password):
+        return False, "Password must contain at least one uppercase letter"
+
+    if not any(char in ascii_lowercase for char in password):
+        return False, "Password must contain at least one lowercase letter"
+
+    if not any(char in digits for char in password):
+        return False, "Password must contain at least one number"
+
+    if not any(char in punctuation for char in password):
+        return False, "Password must contain at least one special character"
+
+    if len(password) < 12:
+        return False, "Password must be at least 12 characters long"
+
+    return True, ""
+
+
 @app.route(URL_ROUTES["REGISTER"], methods=["POST"])
 def handle_register():
     """
@@ -140,54 +165,10 @@ def handle_register():
     password = request.form.get("password", "").strip()
     confirm_password = request.form.get("confirm_password", "").strip()
 
-    # Validate form data
-    if password != confirm_password:
-        flash("Passwords do not match", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
-
-    if len(password) < 12:
-        flash("Password must be at least 12 characters long", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
-
-    if not any(char in ascii_uppercase for char in password):
-        flash("Password must contain at least one uppercase letter", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
-
-    if not any(char in ascii_lowercase for char in password):
-        flash("Password must contain at least one lowercase letter", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
-
-    if not any(char in digits for char in password):
-        flash("Password must contain at least one number", "error")
-        return render_template(
-            "register.html",
-            username=username,
-            password=password,
-            confirm_password=confirm_password,
-        )
-
-    if not any(char in punctuation for char in password):
-        flash("Password must contain at least one special character", "error")
+    # Validate password
+    is_valid, error_message = validate_password(password, confirm_password)
+    if not is_valid:
+        flash(error_message, "error")
         return render_template(
             "register.html",
             username=username,
