@@ -37,7 +37,6 @@ temp_session_dir = tempfile.mkdtemp()
 app.config.update(
     SESSION_TYPE="filesystem",
     SESSION_FILE_DIR=temp_session_dir,
-    SESSION_FILE_THRESHOLD=500,
     PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
