@@ -7,6 +7,7 @@ providing basic routing and form handling functionality.
 
 from datetime import datetime, timedelta
 from os import environ
+import os
 from string import ascii_lowercase, ascii_uppercase, digits, punctuation
 import tempfile
 
@@ -43,15 +44,6 @@ app.config.update(
 
 # Initialize the Session extension
 Session(app)
-
-# Route constants
-URL_ROUTES = {
-    "LOGIN": "/",
-    "REGISTER": "/register",
-    "HOME": "/home",
-    "ABOUT": "/about",
-    "CONTACT": "/contact",
-}
 
 
 class UserDatabase:
@@ -101,6 +93,15 @@ class UserDatabase:
 
 # Initialize database
 db = UserDatabase(DATABASE_FILE)
+
+# Route constants
+URL_ROUTES = {
+    "LOGIN": "/",
+    "REGISTER": "/register",
+    "HOME": "/home",
+    "ABOUT": "/about",
+    "CONTACT": "/contact",
+}
 
 
 # HANDLERS
@@ -218,19 +219,22 @@ def handle_login():
     """
     Handles the login route's form submission.
     """
-    username = request.form.get("username", "").strip()
+    username = request.form.get("username", "").strip().lower()
     password = request.form.get("password", "").strip()
 
     try:
         # Check if database is loaded
-        if not db.load_database():
+        if not os.path.exists(DATABASE_FILE):
             raise IOError("Failed to load database")
 
-        # Check credentials
-        if not username in db.users or not sha256_crypt.verify(
-            password, db.users[username]
-        ):
-            flash("Invalid username or password", "error")
+        # Check if username exists
+        if username not in db.users:
+            flash("Username not found", "error")
+            return render_template("login.html", username=username, password=password)
+
+        # Verify password
+        if not sha256_crypt.verify(password, db.users[username]):
+            flash("Incorrect password", "error")
             return render_template("login.html", username=username, password=password)
 
         # Set session data
