@@ -318,6 +318,7 @@ def logout():
     Handles user logout by clearing the session.
     """
     session.clear()
+    flash("Logged out successfully!", "success")
     return redirect(url_for("login"))
 
 
