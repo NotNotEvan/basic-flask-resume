@@ -8,8 +8,10 @@ providing basic routing and form handling functionality.
 from datetime import datetime, timedelta
 from werkzeug.exceptions import BadRequest
 import tempfile
-from string import digits, ascii_uppercase, ascii_lowercase, punctuation
 
+from string import digits, ascii_uppercase, ascii_lowercase, punctuation
+from os import environ
+from dotenv import load_dotenv
 from passlib.hash import sha256_crypt
 from flask_session import Session
 from flask import (
@@ -23,8 +25,11 @@ from flask import (
 )
 
 # Initialize Flask app
+load_dotenv()
 app = Flask(__name__)
-app.secret_key = "super_secret_key"
+app.secret_key = environ.get("SECRET_KEY", "fallback_secret_key")
+DATABASE = environ.get("DATABASE_FILE", "database.txt")
+db = {}
 
 # Create a temporary directory for sessions
 temp_session_dir = tempfile.mkdtemp()
@@ -52,8 +57,6 @@ URL_ROUTES = {
 }
 
 # Initialize the database in the form of a text file
-DATABASE = "database.txt"
-db = {}
 
 
 # Load database
@@ -69,7 +72,7 @@ def load_database():
             for line in file:
                 if line.strip():  # Skip empty lines
                     username, hashed_password = line.strip().split(":")
-                    db[username] = hashed_password
+                    db[username.strip().lower()] = hashed_password
     except Exception as e:
         print(f"Error loading database: {e}")
     return db
@@ -83,7 +86,7 @@ def save_database():
     try:
         with open(DATABASE, "w") as file:
             for username, hashed_password in db.items():
-                file.write(f"{username}:{hashed_password}\n")
+                file.write(f"{username.strip().lower()}:{hashed_password}\n")
         return True
     except Exception as e:
         print(f"Error saving database: {e}")
@@ -119,7 +122,6 @@ def handle_contact():
             return render_template("contact.html", form_data=form_data)
 
         # Process form data
-        print(form_data)
         flash("Message sent successfully!", "success")
         return render_template("contact.html")
 
