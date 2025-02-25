@@ -3,6 +3,8 @@ block content %}
 <div class="login-container">
   <div class="login-form-wrapper">
     <h3 class="title-gradient">Create Account</h3>
+
+    <!-- Registration Form -->
     <form class="login-form" method="POST">
       <input
         type="text"
@@ -18,6 +20,7 @@ block content %}
         placeholder="Password"
         required
       />
+      <!-- Password Reqs -->
       <ul class="password-requirements">
         <li>Minimum 12 characters long</li>
         <li>At least one uppercase letter</li>
@@ -36,6 +39,8 @@ block content %}
         <button type="submit" class="base-button cta-button">Register</button>
       </div>
     </form>
+
+    <!-- Link to Login  -->
     <p class="register-text">
       Already have an account?
       <a href="{{ url_for('login') }}" class="link">Login here</a>
