@@ -28,7 +28,7 @@ from flask import (
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = environ.get("SECRET_KEY", "fallback_secret_key")
-DATABASE = environ.get("DATABASE_FILE", "database.txt")
+DATABASE_FILE = environ.get("DATABASE_FILE", "database.txt")
 
 # Create a temporary directory for sessions
 temp_session_dir = tempfile.mkdtemp()
@@ -96,7 +96,7 @@ class UserDatabase:
 
 
 # Initialize database
-db = UserDatabase(DATABASE)
+db = UserDatabase(DATABASE_FILE)
 
 
 # HANDLERS
@@ -138,22 +138,40 @@ def validate_password(password: str, confirm_password: str) -> tuple[bool, str]:
     Validates password against security requirements.
     """
     if password != confirm_password:
-        return False, "Passwords do not match"
+        return (
+            False,
+            "Passwords do not match",
+        )
 
     if not any(char in ascii_uppercase for char in password):
-        return False, "Password must contain at least one uppercase letter"
+        return (
+            False,
+            "Password must contain at least one uppercase letter",
+        )
 
     if not any(char in ascii_lowercase for char in password):
-        return False, "Password must contain at least one lowercase letter"
+        return (
+            False,
+            "Password must contain at least one lowercase letter",
+        )
 
     if not any(char in digits for char in password):
-        return False, "Password must contain at least one number"
+        return (
+            False,
+            "Password must contain at least one number",
+        )
 
     if not any(char in punctuation for char in password):
-        return False, "Password must contain at least one special character"
+        return (
+            False,
+            "Password must contain at least one special character",
+        )
 
     if len(password) < 12:
-        return False, "Password must be at least 12 characters long"
+        return (
+            False,
+            "Password must be at least 12 characters long",
+        )
 
     return True, ""
 
@@ -203,7 +221,7 @@ def handle_register():
                 password=password,
                 confirm_password=confirm_password,
             )
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         flash(f"Registration error: {str(e)}", "error")
         return render_template(
             "register.html",
@@ -232,7 +250,7 @@ def handle_login():
         else:
             flash("Invalid username or password", "error")
             return render_template("login.html", username=username, password=password)
-    except Exception as e:
+    except (ValueError, TypeError) as e:
         flash(f"Login error: {str(e)}", "error")
         return render_template("login.html", username=username, password=password)
 
