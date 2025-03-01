@@ -1,0 +1,50 @@
+{% extends "base_layout.html" %} {% block title %}Register{% endblock %} {%
+block content %}
+<div class="login-container">
+  <div class="login-form-wrapper">
+    <h3 class="title-gradient">Create Account</h3>
+
+    <!-- Registration Form -->
+    <form class="login-form" method="POST">
+      <input
+        type="text"
+        value="{{ username }}"
+        name="username"
+        placeholder="Username/Email"
+        required
+      />
+      <input
+        type="password"
+        value="{{ password }}"
+        name="password"
+        placeholder="Password"
+        required
+      />
+      <!-- Password Reqs -->
+      <ul class="password-requirements">
+        <li>Minimum 12 characters long</li>
+        <li>At least one uppercase letter</li>
+        <li>At least one lowercase letter</li>
+        <li>At least one number</li>
+        <li>At least one special character</li>
+      </ul>
+      <input
+        type="password"
+        value="{{ confirm_password }}"
+        name="confirm_password"
+        placeholder="Confirm Password"
+        required
+      />
+      <div class="button-wrapper">
+        <button type="submit" class="base-button cta-button">Register</button>
+      </div>
+    </form>
+
+    <!-- Link to Login  -->
+    <p class="register-text">
+      Already have an account?
+      <a href="{{ url_for('login') }}" class="link">Login here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

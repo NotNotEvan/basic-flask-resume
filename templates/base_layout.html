@@ -1,0 +1,53 @@
+{% from "macros/navbar.html" import navbar %} {% from
+"macros/background_circles.html" import background_circles %} {% from
+"macros/flash_messages.html" import flash_messages %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{% endblock %}</title>
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='images/favicon.svg') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/global.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles/index.css') }}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
+      rel="stylesheet"
+    />
+
+    {% block scripts %}{% endblock %}
+  </head>
+  <body>
+    {{ background_circles() }}
+    <div class="container">
+      {% if session['authenticated'] %}
+      <header class="header">{{ navbar() }}</header>
+      {% endif %}
+
+      <!-- Main Content -->
+      <main class="main">
+        <!-- Flash Messages -->
+        {{ flash_messages() }}
+
+        <!-- Content Container -->
+        <div
+          class="content-container {% if not session['authenticated'] %}no-nav{% endif %}"
+        >
+          {% block content %}{% endblock %}
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

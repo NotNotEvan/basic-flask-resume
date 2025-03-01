@@ -117,6 +117,10 @@
   padding: 24px;
 }
 
+.no-nav {
+  height: 100vh;
+}
+
 .page-container {
   display: flex;
   flex-direction: column;
@@ -415,6 +419,70 @@
 
 .experience-table tbody tr:hover {
   background: var(--background);
+}
+
+/* LOGIN */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 24px;
+}
+
+.login-form-wrapper {
+  background: var(--secondary);
+  padding: 32px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 0 16px var(--primary);
+}
+
+.login-form-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  background: var(--text-gradient);
+  z-index: -1;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-form input {
+  padding: 12px;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+  width: 100%;
+  background: var(--background);
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.register-text {
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.password-requirements {
+  font-size: 0.8rem;
+  color: var(--text);
+  opacity: 0.7;
+  list-style-type: disc;
+  padding-left: 1.2rem;
+  margin-top: -8px;
 }
 
 /* MEDIA QUERIES */
