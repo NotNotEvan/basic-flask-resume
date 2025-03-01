@@ -248,11 +248,53 @@ def handle_login():
         return render_template("login.html", username=username, password=password)
 
 
+@app.route(URL_ROUTES["UPDATE_PASSWORD"], methods=["POST"])
 def handle_update_password():
     """
     Handles the update password route's form submission.
     """
-    pass
+    current_password = request.form.get("current_password", "").strip()
+    password = request.form.get("password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
+    # Check if current password is correct
+    if not sha256_crypt.verify(current_password, db.users[session["username"]]):
+        flash("Current password is incorrect", "error")
+        return render_template(
+            "update_password.html",
+            current_password=current_password,
+            password=password,
+            confirm_password=confirm_password,
+        )
+
+    # Validate new password
+    is_valid, error_message = validate_password(password, confirm_password)
+    if not is_valid:
+        flash(error_message, "error")
+        return render_template(
+            "update_password.html",
+            current_password=current_password,
+            password=password,
+            confirm_password=confirm_password,
+        )
+
+    # Hash new password and save to database
+    try:
+        hashed_password = sha256_crypt.hash(password)
+        db.users[session["username"]] = hashed_password
+        if not db.save_database():
+            raise IOError("Failed to save to database")
+
+        flash("Password updated successfully!", "success")
+        return redirect(url_for("home"))
+    except IOError as e:
+        flash(f"Password update error: {str(e)}", "error")
+        return render_template(
+            "update_password.html",
+            current_password=current_password,
+            password=password,
+            confirm_password=confirm_password,
+        )
 
 
 # ROUTES
@@ -289,7 +331,12 @@ def update_password():
         return redirect(url_for("login"))
     if request.method == "POST":
         return handle_update_password()
-    return render_template("update_password.html")
+    return render_template(
+        "update_password.html",
+        current_password="",
+        password="",
+        confirm_password="",
+    )
 
 
 @app.route("/home")
