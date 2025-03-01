@@ -9,11 +9,7 @@ __pycache__/
 *.pyz
 
 # Flask
-*.log
-*.log.*
-*.log.*.*
-*.log.*.*.*
-*.log.*.*.*.*
+logs/
 
 # Pylint
 *.txt

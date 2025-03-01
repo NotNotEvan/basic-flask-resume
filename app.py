@@ -6,6 +6,8 @@ providing basic routing and form handling functionality.
 """
 
 from datetime import datetime, timedelta
+import logging
+from logging.handlers import RotatingFileHandler
 from os import environ
 import os
 from string import ascii_lowercase, ascii_uppercase, digits, punctuation
@@ -44,6 +46,45 @@ app.config.update(
 
 # Initialize the Session extension
 Session(app)
+
+
+class SecurityLogger:
+    """
+    A class for logging security events.
+    """
+
+    def __init__(self, log_file="security.log"):
+        """
+        Initializes the SecurityLogger object.
+        """
+        self.logger = logging.getLogger("security_logger")
+        self.logger.setLevel(logging.INFO)
+
+        # Create logs directory if it doesn't exist
+        log_dir = "logs"
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+
+        # Configure rotating file handler (10MB max size, keep 5 backup files)
+        handler = RotatingFileHandler(
+            os.path.join(log_dir, log_file), maxBytes=10 * 1024 * 1024, backupCount=5
+        )
+
+        # Set log format
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
+        handler.setFormatter(formatter)
+
+        self.logger.addHandler(handler)
+
+    def log_failed_login(self, username: str, ip_address: str, reason: str):
+        """
+        Logs failed login attempts with timestamp and IP address.
+        """
+        self.logger.warning(
+            f"Failed login attempt - Username: {username} - IP: {ip_address} - Reason: {reason}"
+        )
 
 
 class UserDatabase:
@@ -90,6 +131,9 @@ class UserDatabase:
             print(f"Error saving database: {e}")
             return False
 
+
+# Initialize security logger
+security_logger = SecurityLogger()
 
 # Initialize database
 db = UserDatabase(DATABASE_FILE)
@@ -222,6 +266,7 @@ def handle_login():
     """
     username = request.form.get("username", "").strip().lower()
     password = request.form.get("password", "").strip()
+    ip_address = request.remote_addr
 
     try:
         # Check if database is loaded
@@ -230,11 +275,17 @@ def handle_login():
 
         # Check if username exists
         if username not in db.users:
+            security_logger.log_failed_login(
+                username=username, ip_address=ip_address, reason="Username not found"
+            )
             flash("Username not found", "error")
             return render_template("login.html", username=username, password=password)
 
         # Verify password
         if not sha256_crypt.verify(password, db.users[username]):
+            security_logger.log_failed_login(
+                username=username, ip_address=ip_address, reason="Incorrect password"
+            )
             flash("Incorrect password", "error")
             return render_template("login.html", username=username, password=password)
 
@@ -244,6 +295,9 @@ def handle_login():
         flash("Login successful!", "success")
         return redirect(url_for("home"))
     except IOError as e:
+        security_logger.log_failed_login(
+            username=username, ip_address=ip_address, reason=f"Database error: {str(e)}"
+        )
         flash(f"Login error: {str(e)}", "error")
         return render_template("login.html", username=username, password=password)
 
