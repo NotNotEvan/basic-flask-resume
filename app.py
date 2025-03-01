@@ -98,6 +98,7 @@ db = UserDatabase(DATABASE_FILE)
 URL_ROUTES = {
     "LOGIN": "/",
     "REGISTER": "/register",
+    "UPDATE_PASSWORD": "/update_password",
     "HOME": "/home",
     "ABOUT": "/about",
     "CONTACT": "/contact",
@@ -247,6 +248,13 @@ def handle_login():
         return render_template("login.html", username=username, password=password)
 
 
+def handle_update_password():
+    """
+    Handles the update password route's form submission.
+    """
+    pass
+
+
 # ROUTES
 @app.route(URL_ROUTES["LOGIN"], methods=["GET", "POST"])
 def login():
@@ -270,6 +278,18 @@ def register():
     return render_template(
         "register.html", username="", password="", confirm_password=""
     )
+
+
+@app.route(URL_ROUTES["UPDATE_PASSWORD"], methods=["GET", "POST"])
+def update_password():
+    """
+    Renders the update password page template.
+    """
+    if not session.get("authenticated"):
+        return redirect(url_for("login"))
+    if request.method == "POST":
+        return handle_update_password()
+    return render_template("update_password.html")
 
 
 @app.route("/home")
