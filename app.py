@@ -5,14 +5,16 @@ This module implements a simple resume website with home, about, and contact pag
 providing basic routing and form handling functionality.
 """
 
+# Standard library imports
 from datetime import datetime, timedelta
 import logging
 from logging.handlers import RotatingFileHandler
-from os import environ
 import os
+from os import environ
 import tempfile
 from typing import Tuple
 
+# Third-party imports
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -36,12 +38,12 @@ COMMON_PASSWORDS_FILE = environ.get(
 )
 
 # Create a temporary directory for sessions
-temp_session_dir = tempfile.mkdtemp()
+TEMP_SESSION_DIR = tempfile.mkdtemp()
 
 # Session configuration
 app.config.update(
     SESSION_TYPE="filesystem",
-    SESSION_FILE_DIR=temp_session_dir,
+    SESSION_FILE_DIR=TEMP_SESSION_DIR,
     PERMANENT_SESSION_LIFETIME=timedelta(minutes=30),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
@@ -86,7 +88,20 @@ class SecurityLogger:
         Logs failed login attempts with timestamp and IP address.
         """
         self.logger.warning(
-            f"Failed login attempt - Username: {username} - IP: {ip_address} - Reason: {reason}"
+            "Failed login attempt - Username: %s - IP: %s - Reason: %s",
+            username,
+            ip_address,
+            reason,
+        )
+
+    def log_successful_login(self, username: str, ip_address: str):
+        """
+        Logs successful login attempts with timestamp and IP address.
+        """
+        self.logger.info(
+            "Successful login - Username: %s - IP: %s",
+            username,
+            ip_address,
         )
 
 
@@ -213,7 +228,8 @@ def validate_password_strength(
     if not all([has_uppercase, has_lowercase, has_digit, has_special]):
         return (
             False,
-            "Password must contain at least one uppercase letter, lowercase letter, number, and special character",
+            "Password must contain at least one uppercase letter, "
+            "lowercase letter, number, and special character",
         )
 
     return True, ""
@@ -296,6 +312,7 @@ def handle_login():
         session["username"] = username
         session["authenticated"] = True
         flash("Login successful!", "success")
+        security_logger.log_successful_login(username=username, ip_address=ip_address)
         return redirect(url_for("home"))
     except IOError as e:
         security_logger.log_failed_login(
