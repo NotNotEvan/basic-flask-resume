@@ -10,8 +10,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 from os import environ
 import os
-from string import ascii_lowercase, ascii_uppercase, digits, punctuation
 import tempfile
+from typing import Tuple
 
 from dotenv import load_dotenv
 from flask import (
@@ -31,6 +31,9 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = environ.get("SECRET_KEY", "fallback_secret_key")
 DATABASE_FILE = environ.get("DATABASE_FILE", "database.txt")
+COMMON_PASSWORDS_FILE = environ.get(
+    "COMMON_PASSWORDS_FILE", "static/data/CommonPassword.txt"
+)
 
 # Create a temporary directory for sessions
 temp_session_dir = tempfile.mkdtemp()
@@ -132,6 +135,26 @@ class UserDatabase:
             return False
 
 
+def load_common_passwords() -> list[str]:
+    """
+    Loads common passwords from a file into a list for efficient lookup.
+    """
+
+    try:
+        if os.path.exists(COMMON_PASSWORDS_FILE):
+            print(f"Found passwords file at: {COMMON_PASSWORDS_FILE}")
+            with open(COMMON_PASSWORDS_FILE, "r", encoding="utf-8") as file:
+                passwords = [line.strip().lower() for line in file if line.strip()]
+                print(f"Successfully loaded {len(passwords)} passwords")
+                return passwords
+
+        print(f"No password file found at: {COMMON_PASSWORDS_FILE}")
+        raise IOError(f"No password file found at: {COMMON_PASSWORDS_FILE}")
+    except IOError as e:
+        print(e)
+        return []
+
+
 # Initialize security logger
 security_logger = SecurityLogger()
 
@@ -149,74 +172,54 @@ URL_ROUTES = {
 }
 
 
-# HANDLERS
-@app.route(URL_ROUTES["CONTACT"], methods=["POST"])
-def handle_contact():
+# HELPER FUNCTIONS
+def validate_password_strength(
+    password: str, confirm_password: str
+) -> Tuple[bool, str]:
     """
-    Handles the contact route's form submission.
+    Validates password against NIST SP 800-63B criteria:
+    - Length and complexity requirements
+    - Not a commonly used password
+    - Passwords match
     """
+    common_passwords = load_common_passwords()
 
-    # Get form data
-    form_data = {
-        "name": request.form.get("name"),
-        "email": request.form.get("email"),
-        "message": request.form.get("message"),
-    }
+    # Check if passwords match
+    if password != confirm_password:
+        return False, "Passwords do not match"
 
-    # Check if user is authenticated
-    if not session.get("authenticated"):
-        flash("Please login to send a message", "error")
-        return redirect(url_for("login"))
+    # Check minimum length (12 characters)
+    if len(password) < 12:
+        return False, "Password must be at least 12 characters long"
 
-    # Validate form data
-    if not all(form_data.values()):
-        flash("All fields are required", "error")
-        return render_template("contact.html", form_data=form_data)
+    # Check if any part of the password matches a common password
+    password_lower = password.lower()
+    for i in range(len(password_lower)):
+        for j in range(i + 1, len(password_lower) + 1):
+            substring = password_lower[i:j]
+            if len(substring) > 3 and substring in common_passwords:
+                return (
+                    False,
+                    f"Password contains a common secret: '{substring}'. "
+                    "Please choose a different password",
+                )
 
-    # Process form data
-    flash("Message sent successfully!", "success")
-    return render_template("contact.html")
+    # Check complexity requirements
+    has_uppercase = any(char.isupper() for char in password)
+    has_lowercase = any(char.islower() for char in password)
+    has_digit = any(char.isdigit() for char in password)
+    has_special = any(not char.isalnum() for char in password)
 
-
-def validate_password(password: str, confirm_password: str) -> tuple[bool, str]:
-    """
-    Validates password against security requirements.
-    """
-    validations = [
-        # Check if passwords match
-        (password == confirm_password, "Passwords do not match"),
-        # Check if password contains uppercase letter
-        (
-            any(char in ascii_uppercase for char in password),
-            "Password must contain at least one uppercase letter",
-        ),
-        # Check if password contains lowercase letter
-        (
-            any(char in ascii_lowercase for char in password),
-            "Password must contain at least one lowercase letter",
-        ),
-        # Check if password contains number
-        (
-            any(char in digits for char in password),
-            "Password must contain at least one number",
-        ),
-        # Check if password contains special character
-        (
-            any(char in punctuation for char in password),
-            "Password must contain at least one special character",
-        ),
-        # Check if password is at least 12 characters long
-        (len(password) >= 12, "Password must be at least 12 characters long"),
-    ]
-
-    # Validate password
-    for is_valid, error_message in validations:
-        if not is_valid:
-            return False, error_message
+    if not all([has_uppercase, has_lowercase, has_digit, has_special]):
+        return (
+            False,
+            "Password must contain at least one uppercase letter, lowercase letter, number, and special character",
+        )
 
     return True, ""
 
 
+# HANDLERS
 @app.route(URL_ROUTES["REGISTER"], methods=["POST"])
 def handle_register():
     """
@@ -234,7 +237,7 @@ def handle_register():
     }
 
     # Validate password
-    is_valid, error_message = validate_password(password, confirm_password)
+    is_valid, error_message = validate_password_strength(password, confirm_password)
     if not is_valid:
         flash(error_message, "error")
         return render_template("register.html", **form_data)
@@ -322,7 +325,7 @@ def handle_update_password():
         )
 
     # Validate new password
-    is_valid, error_message = validate_password(password, confirm_password)
+    is_valid, error_message = validate_password_strength(password, confirm_password)
     if not is_valid:
         flash(error_message, "error")
         return render_template(
@@ -349,6 +352,34 @@ def handle_update_password():
             password=password,
             confirm_password=confirm_password,
         )
+
+
+@app.route(URL_ROUTES["CONTACT"], methods=["POST"])
+def handle_contact():
+    """
+    Handles the contact route's form submission.
+    """
+
+    # Get form data
+    form_data = {
+        "name": request.form.get("name"),
+        "email": request.form.get("email"),
+        "message": request.form.get("message"),
+    }
+
+    # Check if user is authenticated
+    if not session.get("authenticated"):
+        flash("Please login to send a message", "error")
+        return redirect(url_for("login"))
+
+    # Validate form data
+    if not all(form_data.values()):
+        flash("All fields are required", "error")
+        return render_template("contact.html", form_data=form_data)
+
+    # Process form data
+    flash("Message sent successfully!", "success")
+    return render_template("contact.html")
 
 
 # ROUTES
