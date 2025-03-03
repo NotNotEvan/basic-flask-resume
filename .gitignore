@@ -8,15 +8,16 @@ __pycache__/
 *.pyw
 *.pyz
 
-# Flask
-*.log
-*.log.*
-*.log.*.*
-*.log.*.*.*
-*.log.*.*.*.*
+# SecurityLogs
+logs/
+
+# Database
+database.txt
 
 # Pylint
-*.txt
+app.txt
+
+# Misc
 *.zip 
 
 
